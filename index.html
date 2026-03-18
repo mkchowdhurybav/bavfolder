@@ -2,11 +2,281 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Do You Love Me?</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fdf2f8; /* Soft pink background */
+            --primary-pink: #ec4899; /* Popping pink */
+            --dark-pink: #be185d;
+            --btn-shadow: rgba(236, 72, 153, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            /* Prevent user from selecting text while frantically clicking */
+            user-select: none; 
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--dark-pink);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* Strictly prevents scrolling on all devices */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* --- Main Quiz Box --- */
+        .quiz-container {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(236, 72, 153, 0.15);
+            text-align: center;
+            z-index: 10;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .question {
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: var(--primary-pink);
+            margin-bottom: 2.5rem;
+            font-weight: 800;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            border: none;
+            outline: none;
+            width: 130px;
+            height: 55px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            color: white;
+            box-shadow: 0 8px 20px var(--btn-shadow);
+        }
+
+        .btn-yes:active {
+            transform: scale(0.95);
+        }
+
+        .btn-no {
+            background-color: #fbcfe8;
+            color: var(--dark-pink);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* The class for the spawned "No" buttons so they can float anywhere */
+        .floating-no {
+            position: absolute;
+            z-index: 100;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* --- Floating Cheeky Texts --- */
+        .cheeky-text {
+            position: absolute;
+            color: var(--primary-pink);
+            font-weight: 800;
+            font-size: 1.2rem;
+            pointer-events: none; /* Let clicks pass through the text */
+            z-index: 50;
+            animation: floatUpAndFade 1.5s forwards;
+            text-shadow: 1px 1px 0px white, -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white;
+        }
+
+        /* --- Success Screen --- */
+        .success-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-color);
+            z-index: 200;
+        }
+
+        .success-text {
+            font-family: 'Pacifico', cursive;
+            font-size: clamp(3.5rem, 8vw, 6rem);
+            color: var(--primary-pink);
+            text-shadow: 3px 3px 10px var(--btn-shadow);
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        .heart {
+            font-size: clamp(4rem, 10vw, 8rem);
+            color: #ef4444;
+            margin-top: 1rem;
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        /* --- Animations --- */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes floatUpAndFade {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+        }
+
+        @keyframes explodeIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        /* Utility class to trigger success animation */
+        .animate-success {
+            animation: explodeIn 0.8s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .animate-heart {
+            animation: explodeIn 0.8s forwards 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), heartbeat 1.5s infinite 1.1s;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello Batikar</h1>
-    <p>This is a basic HTML5 document.</p>
+
+    <div class="quiz-container" id="quiz-box">
+        <h1 class="question">Do you love me?</h1>
+        <div class="button-group" id="btn-group">
+            <button class="btn btn-yes" onclick="triggerYes()">Yes</button>
+            <button class="btn btn-no" id="initial-no">No</button>
+        </div>
+    </div>
+
+    <div class="success-screen" id="success-screen">
+        <div class="success-text" id="s-text">So Do I</div>
+        <div class="heart" id="s-heart">❤️</div>
+    </div>
+
+    <script>
+        const cheekyMessages = ["You can't!", "Click Yes!", "Nice try!", "Nope!", "Try again!", "Too slow!", "I'm over here!"];
+        const btnWidth = 130;
+        const btnHeight = 55;
+
+        // Attach event to the very first "No" button
+        const initialNoBtn = document.getElementById('initial-no');
+        attachRunawayEvents(initialNoBtn);
+
+        function attachRunawayEvents(buttonElement) {
+            // For Desktop (hover)
+            buttonElement.addEventListener('mouseenter', handleRunaway);
+            // For Mobile (touch/tap)
+            buttonElement.addEventListener('touchstart', handleRunaway, {passive: false});
+            // Fallback for clicks
+            buttonElement.addEventListener('click', handleRunaway);
+        }
+
+        function handleRunaway(e) {
+            e.preventDefault(); // Stop normal click behavior immediately
+
+            const targetBtn = e.target;
+            
+            // 1. Get coordinates to spawn the floating text exactly where the button was
+            const rect = targetBtn.getBoundingClientRect();
+            spawnCheekyText(rect.left + (rect.width / 2), rect.top);
+
+            // 2. Destroy this button entirely
+            targetBtn.remove();
+
+            // 3. Spawn a brand new "No" button somewhere else
+            spawnNewNoButton();
+        }
+
+        function spawnNewNoButton() {
+            // Create the new element
+            const newBtn = document.createElement('button');
+            newBtn.innerText = 'No';
+            newBtn.className = 'btn btn-no floating-no';
+
+            // Calculate safe boundaries so it doesn't spawn off-screen or require scrolling
+            // Subtracting button dimensions + a little padding (10px) to keep it fully visible
+            const maxX = window.innerWidth - btnWidth - 20;
+            const maxY = window.innerHeight - btnHeight - 20;
+
+            // Generate random X and Y coordinates within the safe zone
+            const randomX = Math.max(10, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(10, Math.floor(Math.random() * maxY));
+
+            newBtn.style.left = `${randomX}px`;
+            newBtn.style.top = `${randomY}px`;
+
+            // Attach the events to this new button so the cycle continues
+            attachRunawayEvents(newBtn);
+
+            // Add it to the body
+            document.body.appendChild(newBtn);
+        }
+
+        function spawnCheekyText(x, y) {
+            const textEl = document.createElement('div');
+            textEl.className = 'cheeky-text';
+            
+            // Pick a random message
+            textEl.innerText = cheekyMessages[Math.floor(Math.random() * cheekyMessages.length)];
+            
+            // Center the text slightly over the click area
+            textEl.style.left = `${x - 40}px`; 
+            textEl.style.top = `${y - 20}px`;
+
+            document.body.appendChild(textEl);
+
+            // Clean up the text element from the code after its animation finishes (1.5s)
+            setTimeout(() => {
+                textEl.remove();
+            }, 1500);
+        }
+
+        function triggerYes() {
+            // Hide the quiz box
+            document.getElementById('quiz-box').style.display = 'none';
+
+            // Destroy any floating "No" buttons that might still be on screen
+            const floatingNos = document.querySelectorAll('.floating-no');
+            floatingNos.forEach(btn => btn.remove());
+
+            // Show the success screen
+            const successScreen = document.getElementById('success-screen');
+            successScreen.style.display = 'flex';
+
+            // Trigger the popping animations
+            document.getElementById('s-text').classList.add('animate-success');
+            document.getElementById('s-heart').classList.add('animate-heart');
+        }
+    </script>
 </body>
 </html>
